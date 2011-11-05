@@ -4,7 +4,6 @@ A Clojure DSL for Solr.
 
 ## My sloppy notes...
 
-(do
 
   {:name "sam" :_boost 10 :_slop 5}
 
@@ -80,8 +79,6 @@ A Clojure DSL for Solr.
      [:not [:and
             [:field :name [:contains "samiam"]]
             [:field :price [:lt 10]]]]]]
-
-   )
 
 ## License
 
