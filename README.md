@@ -16,10 +16,14 @@ A Clojure DSL for Solr.
          :title [:or [:starts-with "sir" "king"]}]
    
    ;; {!frange l=0 u=2.2}log(sum(user_ranking, editor_ranking))
+
+
    [:!frange {:l 0 :u 2.2}
     [:log-> [:sum-> :user_ranking :editor_ranking]]]
    
    ;; {!frange l=martin u=rowling}author_last_name
+
+
    [:!frange {:l "martin" :u "rowling"}
     :author_last_name]
    
@@ -45,21 +49,26 @@ A Clojure DSL for Solr.
             1 1 10]}
 
    ;; name:(samiam*)
+
    (meta {:name [:starts-with "samiam"]})
 
    ;; _query_:"type:poems"
+
    {:_query_ {:type "poems"}}
 
    ;; text:"roses are red" AND _query_:"type:poems"
+
    [:and {:text [:exactly "roses are red"]}
     {:_query_ {:type "poems"}}]
 
    ;; text:hi AND _query_:"{!dismax qf=title pf=title}how now brown cow"
+
    [:and
     {:text "hi"}
     {:_query_ [:!dismax {:qf :title :pf :title} "how now brown cow"]}]
 
    ;; {!func}recip(rord(date),1,1000,1000)
+
    [:!func [:recip-> [:rord-> [:date->] 1 1000 1000]]]
 
    ;; anything that starts-with ! can accept an option hash map,
