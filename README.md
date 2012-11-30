@@ -1,13 +1,19 @@
 # disco
 
-Simple Solr utilities for your favorite language.
+Simple Solr utilities functions in your favorite programming language.
 
 # use
-project.clj: [disco "1.0.0-SNAPSHOT"]
+project.clj:
 
-(require '[disco.q :as q])
+  [disco "1.0.0-SNAPSHOT"]
 
-(q/query "testing" :slop 2)
+
+code:
+
+  (require '[disco.q :as q])
+  (q/query "testing" :slop 2)
+
+Checkout the tests for more samples...
 
 ## License
 

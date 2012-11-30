@@ -1,5 +1,17 @@
 (ns disco.q
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            ;;[clj-time.core :as time]
+            ;;[clj-time.format :as timef]
+            ))
+
+;; [* TO NOW]
+;; [1976-03-06T23:59:59.999Z TO *]
+;; [1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]
+;; 1976-03-06T23:59:59.999Z/YEAR
+;; [NOW-1YEAR/DAY TO NOW/DAY+1DAY]
+
+;; (within (time/minus (time/now) (time/days 7))
+;;         (time/plus (time/now) (time/days 7)))
 
 (defn de-keyword [x]
   (or (and (keyword? x) (name x)) x))
