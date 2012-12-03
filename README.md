@@ -11,7 +11,9 @@ project.clj:
 code:
 
   (require '[disco.q :as q])
-  (q/query "testing" :slop 2)
+  (all-of (fquery :text "hi")
+          (fquery :_query_
+                  (phrase (lparams :dismax {:qf :title :pf :title :v :$qq}))))
 
 Checkout the tests for more samples...
 

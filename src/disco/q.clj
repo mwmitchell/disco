@@ -32,7 +32,7 @@
 
 (let [types {:or " OR " :and " AND "}]
 
-  (defn op [t qs & {b :boost}]
+  (defn op [t & qs]
     {:pre [(types t) (sequential? qs)]}
     (string/join (types t) qs)))
 
@@ -47,7 +47,7 @@
   {:pre [(or (string? field) (keyword field))]}
   (str (name field) ":" (apply query q opts)))
 
-(defn fields [& fields]
+(defn flist [& fields]
   (string/join "," (map #(if (sequential? %)
                            (boost (de-keyword (first %)) (last %))
                            (de-keyword %)) fields)))
@@ -55,26 +55,20 @@
 (defn within [f t]
   (str "[" (or f "*") " TO " (or t "*") "]"))
 
-(defn gt [x]
-  (within (+ x 1) "*"))
+(defn gt [x] (within (+ x 1) "*"))
 
-(defn gt= [x]
-  (within x "*"))
+(defn gt= [x] (within x "*"))
 
-(defn lt [x]
-  (within "*" (- x 1)))
+(defn lt [x] (within "*" (- x 1)))
 
-(defn lt= [x]
-  (within "*" x))
+(defn lt= [x] (within "*" x))
 
-(defn must [s]
-  (str "+" s))
+(defn must [s] (str "+" s))
 
-(defn must-not [s]
-  (str "-"  s))
+(defn must-not [s] (str "-"  s))
 
-(defn none-of [x]
-  (must-not (group (any-of x))))
+(defn none-of [& x]
+  (must-not (group (apply any-of x))))
 
 (letfn [(eq-pairs [[k v]]
           (str (name k) "=" (str "'" (de-keyword v) "'")))
@@ -82,12 +76,12 @@
           (when-let [s (not-empty (string/join " " (map eq-pairs m)))]
             (str " " s)))]
 
-  (defn lparams [ptype opts q]
+  (defn lparams [ptype opts & [q]]
     {:pre [(keyword? ptype)]}
     (str "{!" (name ptype) (lparams-args opts) "}" q)))
 
 (letfn [(func-args [args] (string/join "," (map de-keyword args)))]
 
-  (defn func [fname & args]
+  (defn fun [fname & args]
     {pre [(keyword? fname)]}
     (str (name fname) "(" (func-args args) ")")))

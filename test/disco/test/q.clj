@@ -18,10 +18,10 @@
   (phrase ..q..) => "\"..q..\"")
 
 (facts "any-of"
-  (any-of [1 2 3]) => "1 OR 2 OR 3")
+  (any-of 1 2 3) => "1 OR 2 OR 3")
 
 (facts "all-of"
-  (all-of [1 2 3]) => "1 AND 2 AND 3")
+  (all-of 1 2 3) => "1 AND 2 AND 3")
 
 (facts "query"
   (query ..q..) => "(..q..)"
@@ -35,9 +35,9 @@
   (fquery :field ..q.. :boost 1) => "field:(..q..)^1"
   (fquery :field ..q.. :slop 1) => "field:(\"..q..\"~1)")
 
-(facts "fields"
-  (fields :a :b :c) => "a,b,c"
-  (fields [:a 1] [:b 2] [:c 3]) => "a^1,b^2,c^3")
+(facts "flist"
+  (flist :a :b :c) => "a,b,c"
+  (flist [:a 1] [:b 2] [:c 3]) => "a^1,b^2,c^3")
 
 (facts "within"
   (within 1 10) => "[1 TO 10]"
@@ -59,10 +59,23 @@
   (must-not ..q..) => "-..q..")
 
 (facts "none-of"
-  (none-of [1 2 3]) => "-(1 OR 2 OR 3)")
+  (none-of 1 2 3) => "-(1 OR 2 OR 3)")
 
-(facts "lparams"
+(facts "lparams (local params)"
   (lparams :dismax {:qf "title,summary"} ..q..) => "{!dismax qf='title,summary'}..q..")
 
 (facts "fun"
-  (func :sum 1 2 3) => "sum(1,2,3)")
+  (fun :sum 1 2 3) => "sum(1,2,3)")
+
+(fact "composite query"
+  (lparams :frange {:l 0 :u 2.2}
+           (fun :log (fun :sum :user_ranking :editor_ranking)))
+  =>
+  "{!frange l='0' u='2.2'}log(sum(user_ranking,editor_ranking))")
+
+(fact "nested queries"
+  (all-of (fquery :text "hi")
+          (fquery :_query_
+                  (phrase (lparams :dismax {:qf :title :pf :title :v :$qq}))))
+  =>
+  "text:(hi) AND _query_:(\"{!dismax qf='title' v='$qq' pf='title'}\")")
