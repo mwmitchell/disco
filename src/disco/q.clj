@@ -52,6 +52,9 @@
                            (boost (de-keyword (first %)) (last %))
                            (de-keyword %)) fields)))
 
+(defn srt [& sorts]
+  (string/join "," (map (fn [[f d]] (str (de-keyword f) " " (de-keyword d))) sorts)))
+
 (defn within [f t]
   (str "[" (or f "*") " TO " (or t "*") "]"))
 

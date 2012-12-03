@@ -39,6 +39,11 @@
   (flist :a :b :c) => "a,b,c"
   (flist [:a 1] [:b 2] [:c 3]) => "a^1,b^2,c^3")
 
+(facts "srt (sort)"
+  (srt [:title :desc] [:name :asc] [(fun :geodist) :asc])
+  =>
+  "title desc,name asc,geodist() asc")
+
 (facts "within"
   (within 1 10) => "[1 TO 10]"
   (within nil 10) => "[* TO 10]"
