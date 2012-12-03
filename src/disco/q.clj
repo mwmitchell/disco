@@ -1,8 +1,5 @@
 (ns disco.q
-  (:require [clojure.string :as string]
-            ;;[clj-time.core :as time]
-            ;;[clj-time.format :as timef]
-            ))
+  (:require [clojure.string :as string]))
 
 (def ^{:dynamic true} *field-map* nil)
 
@@ -10,16 +7,13 @@
   `(binding [*field-map* ~mapping]
      ~@forms))
 
-;; [* TO NOW]
-;; [1976-03-06T23:59:59.999Z TO *]
-;; [1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]
-;; 1976-03-06T23:59:59.999Z/YEAR
-;; [NOW-1YEAR/DAY TO NOW/DAY+1DAY]
+(def cds (partial string/join ","))
+(def sds (partial string/join " "))
+(defn- swrap [q s] (str q s q))
+(def squote (partial swrap "'"))
+(def dquote (partial swrap "\""))
 
-;; (within (time/minus (time/now) (time/days 7))
-;;         (time/plus (time/now) (time/days 7)))
-
-(defn de-keyword [x]
+(defn- de-keyword [x]
   (or (and (keyword? x) (name x)) x))
 
 (defn map-field [f]
@@ -50,19 +44,19 @@
 (def all-of (partial op :and))
 
 (defn query [q & {p :phrase s :slop b :boost :as opts}]
-  (boost (group (if (or p s) (slop (str "\"" q "\"") s) q)) b))
+  (boost (group (if (or p s) (slop (dquote q) s) q)) b))
 
 (defn fquery [field q & opts]
   {:pre [(or (string? field) (keyword field))]}
   (str (map-field field) ":" (apply query q opts)))
 
 (defn flist [& fields]
-  (string/join "," (map #(if (sequential? %)
+  (cds (map #(if (sequential? %)
                            (boost (map-field (first %)) (last %))
                            (map-field %)) fields)))
 
 (defn srt [& sorts]
-  (string/join "," (map (fn [[f d]] (str (map-field f) " " (de-keyword d))) sorts)))
+  (cds (map (fn [[f d]] (str (map-field f) " " (de-keyword d))) sorts)))
 
 (defn within [f t]
   (str "[" (or f "*") " TO " (or t "*") "]"))
@@ -83,17 +77,15 @@
   (must-not (group (apply any-of x))))
 
 (letfn [(eq-pairs [[k v]]
-          (str (name k) "=" (str "'" (de-keyword v) "'")))
+          (str (name k) "=" (squote (de-keyword v))))
         (lparams-args [m]
-          (when-let [s (not-empty (string/join " " (map eq-pairs m)))]
+          (when-let [s (not-empty (sds (map eq-pairs m)))]
             (str " " s)))]
 
   (defn lparams [ptype opts & [q]]
     {:pre [(keyword? ptype)]}
     (str "{!" (name ptype) (lparams-args opts) "}" q)))
 
-(letfn [(func-args [args] (string/join "," (map de-keyword args)))]
-
-  (defn fun [fname & args]
-    {pre [(keyword? fname)]}
-    (str (name fname) "(" (func-args args) ")")))
+(defn fun [fname & args]
+  {pre [(keyword? fname)]}
+  (str (name fname) (group (cds (map de-keyword args)))))
