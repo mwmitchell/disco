@@ -84,3 +84,10 @@
                   (phrase (lparams :dismax {:qf :title :pf :title :v :$qq}))))
   =>
   "text:(hi) AND _query_:(\"{!dismax qf='title' v='$qq' pf='title'}\")")
+
+(fact "with-fields"
+  (with-fields {:author-name :author_name
+                :rank :rnk}
+    (fquery :author-name "me") => "author_name:(me)"
+    (flist :author-name :rank) => "author_name,rnk"
+    (srt [:rank :desc]) => "rnk desc"))

@@ -4,6 +4,12 @@
             ;;[clj-time.format :as timef]
             ))
 
+(def ^{:dynamic true} *field-map* nil)
+
+(defmacro with-fields [mapping & forms]
+  `(binding [*field-map* ~mapping]
+     ~@forms))
+
 ;; [* TO NOW]
 ;; [1976-03-06T23:59:59.999Z TO *]
 ;; [1995-12-31T23:59:59.999Z TO 2007-03-06T00:00:00Z]
@@ -15,6 +21,9 @@
 
 (defn de-keyword [x]
   (or (and (keyword? x) (name x)) x))
+
+(defn map-field [f]
+  (de-keyword (get *field-map* f f)))
 
 (letfn [(x-append [ch q v]
           {:pre [(or (nil? v) (number? v))]}
@@ -45,15 +54,15 @@
 
 (defn fquery [field q & opts]
   {:pre [(or (string? field) (keyword field))]}
-  (str (name field) ":" (apply query q opts)))
+  (str (map-field field) ":" (apply query q opts)))
 
 (defn flist [& fields]
   (string/join "," (map #(if (sequential? %)
-                           (boost (de-keyword (first %)) (last %))
-                           (de-keyword %)) fields)))
+                           (boost (map-field (first %)) (last %))
+                           (map-field %)) fields)))
 
 (defn srt [& sorts]
-  (string/join "," (map (fn [[f d]] (str (de-keyword f) " " (de-keyword d))) sorts)))
+  (string/join "," (map (fn [[f d]] (str (map-field f) " " (de-keyword d))) sorts)))
 
 (defn within [f t]
   (str "[" (or f "*") " TO " (or t "*") "]"))
