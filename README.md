@@ -1,19 +1,24 @@
 # disco
 
-Simple Solr utilities functions in your favorite programming language.
+Solr utility functions, in everyone's favorite programming language.
 
-# use
-project.clj:
+## getting started
 
-  [disco "1.0.0-SNAPSHOT"]
+For leiningen projects, in your project.clj :dependencies:
 
+```clojure
+[disco "1.0.0-SNAPSHOT]
+```
 
-code:
+## example queries
 
-  (require '[disco.q :as q])
-  (all-of (fquery :text "hi")
-          (fquery :_query_
-                  (phrase (lparams :dismax {:qf :title :pf :title :v :$qq}))))
+```clojure
+(require '[disco.q :as q])
+
+(all-of (fquery :text "hi")
+        (fquery :_query_
+                (phrase (lparams :dismax {:qf :title :pf :title :v :$qq}))))
+```
 
 Checkout the tests for more samples...
 
