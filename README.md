@@ -7,7 +7,7 @@ Solr utility functions, in everyone's favorite programming language.
 For leiningen projects, in your project.clj :dependencies:
 
 ```clojure
-[disco "1.0.0-SNAPSHOT]
+[disco "1.0.0-SNAPSHOT"]
 ```
 
 ## example queries
