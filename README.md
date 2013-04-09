@@ -24,6 +24,6 @@ Checkout the tests for more samples...
 
 ## License
 
-Copyright (C) 2013 Matt Mitchell
+Copyright (C) 2011 Matt Mitchell
 
 Distributed under the Eclipse Public License, the same as Clojure.
