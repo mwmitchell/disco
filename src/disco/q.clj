@@ -1,6 +1,9 @@
 (ns disco.q
   (:require [clojure.string :as string]))
 
+(defn present? [s]
+  (when s (not (string/blank? (str s)))))
+
 (def ^{:dynamic true} *field-map* nil)
 
 (defmacro with-fields [mapping & forms]
@@ -17,38 +20,41 @@
   (or (and (keyword? x) (name x)) x))
 
 (defn map-field [f]
-  (de-keyword (get *field-map* f f)))
+  (when-let [x (de-keyword (get *field-map* f f))]
+    x))
 
 (letfn [(x-append [ch q v]
           {:pre [(or (nil? v) (number? v))]}
-          (or (and v (str (de-keyword q) ch v)) q))]
+          (when (present? q)
+            (or (and v (str (de-keyword q) ch v)) q)))]
 
   (def boost (partial x-append "^"))
 
   (def slop (partial x-append "~")))
 
 (defn phrase [q]
-  (str "\"" q "\""))
+  (when (present? q) (str "\"" q "\"")))
 
 (defn group [x]
-  (str "(" x ")"))
+  (when (present? x)
+    (str "(" x ")")))
 
 (let [types {:or " OR " :and " AND "}]
-
   (defn op [t & qs]
-    {:pre [(types t) (sequential? qs)]}
-    (string/join (types t) qs)))
+    (not-empty (string/join (types t) (filterv present? qs)))))
 
 (def any-of (partial op :or))
 
 (def all-of (partial op :and))
 
 (defn query [q & {p :phrase s :slop b :boost :as opts}]
-  (boost (group (if (or p s) (slop (dquote q) s) q)) b))
+  (when (present? q)
+    (boost (group (if (or p s) (slop (dquote q) s) q)) b)))
 
 (defn fquery [field q & opts]
   {:pre [(or (string? field) (keyword field))]}
-  (str (map-field field) ":" (apply query q opts)))
+  (when (present? q)
+    (str (map-field field) ":" (apply query q opts))))
 
 (defn flist [& fields]
   (cds (map #(if (sequential? %)
@@ -59,19 +65,20 @@
   (cds (map (fn [[f d]] (str (map-field f) " " (de-keyword d))) sorts)))
 
 (defn within [f t]
-  (str "[" (or f "*") " TO " (or t "*") "]"))
+  (when (or f t)
+    (str "[" (or f "*") " TO " (or t "*") "]")))
 
-(defn gt [x] (within (+ x 1) "*"))
+(defn gt [x] (when x (within (+ x 1) "*")))
 
-(defn gt= [x] (within x "*"))
+(defn gt= [x] (when x (within x "*")))
 
-(defn lt [x] (within "*" (- x 1)))
+(defn lt [x] (when x (within "*" (- x 1))))
 
-(defn lt= [x] (within "*" x))
+(defn lt= [x] (when x (within "*" x)))
 
-(defn must [s] (str "+" s))
+(defn must [s] (when s (str "+" s)))
 
-(defn must-not [s] (str "-"  s))
+(defn must-not [s] (when s (str "-"  s)))
 
 (defn none-of [& x]
   (must-not (group (apply any-of x))))
