@@ -18,31 +18,31 @@
   (phrase ..q..) => "\"..q..\"")
 
 (facts "any-of"
-  (any-of 1 2 3) => "1 OR 2 OR 3")
+  (any-of 1 2 3) => "(1 OR 2 OR 3)")
 
 (facts "all-of"
-  (all-of 1 2 3) => "1 AND 2 AND 3")
+  (all-of 1 2 3) => "(1 AND 2 AND 3)")
 
-(facts "query"
-  (query ..q..) => "(..q..)"
-  (query ..q.. :phrase true) => "(\"..q..\")"
-  (query ..q.. :boost 1) => "(..q..)^1"
-  (query ..q.. :slop 1) => "(\"..q..\"~1)")
+(facts "term"
+  (term ..q..) => ..q..
+  (term ..q.. :fuzz 2) => "..q..~2")
 
 (facts "fquery"
-  (fquery :field ..q..) => "field:(..q..)"
-  (fquery :field ..q.. :phrase true) => "field:(\"..q..\")"
-  (fquery :field ..q.. :boost 1) => "field:(..q..)^1"
-  (fquery :field ..q.. :slop 1) => "field:(\"..q..\"~1)")
+  (fquery :field ..q..) => "field:(..q..)")
 
 (facts "flist"
   (flist :a :b :c) => "a,b,c"
   (flist [:a 1] [:b 2] [:c 3]) => "a^1,b^2,c^3")
 
-(facts "srt (sort)"
-  (srt [:title :desc] [:name :asc] [(fun :geodist) :asc])
+(facts "srt (sort) throws out empty values"
+  (srt [:title :desc] [:name :asc] [nil :asc])
   =>
-  "title desc,name asc,geodist() asc")
+  "title desc,name asc")
+
+(facts "srt (sort)"
+  (srt [:title :desc] [:name :asc] [(fun :geodist 1 2 3 4) :asc])
+  =>
+  "title desc,name asc,geodist(1,2,3,4) asc")
 
 (facts "within"
   (within 1 10) => "[1 TO 10]"
@@ -83,7 +83,7 @@
           (fquery :_query_
                   (phrase (lparams :dismax {:qf :title :pf :title :v :$qq}))))
   =>
-  "text:(hi) AND _query_:(\"{!dismax qf='title' v='$qq' pf='title'}\")")
+  "(text:(hi) AND _query_:(\"{!dismax qf='title' v='$qq' pf='title'}\"))")
 
 (fact "with-fields"
   (with-fields {:author-name :author_name
